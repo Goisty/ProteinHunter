@@ -1,0 +1,284 @@
+// Comments "//" refer to where the file is meant to be placed in Gamemaker 
+
+// OBJECT objMenuSpawn
+
+//CREATE 
+
+global.active = false;
+global.optActive = false;
+back = layer_get_id("bkgPause") 
+backOne = layer_get_id("bkgOptions")
+layer_set_visible(back, false)
+
+// STEP
+
+if (keyboard_check_pressed(vk_escape) && !global.optActive) global.active = !global.active
+
+if (global.active && !global.optActive)
+{
+	
+	layer_set_visible(back, true);
+	instance_activate_object(objGameMenu);
+}
+else
+{
+	layer_set_visible(back, false);
+	instance_deactivate_object(objGameMenu);
+}
+
+if (global.optActive) 
+{
+	// activate this menu plus the background
+	layer_set_visible(backOne, true);
+	instance_activate_object(objOptionsMenu);
+}
+else
+{
+	// deactivate this menu and the backgroud
+	layer_set_visible(backOne, false);
+	instance_deactivate_object(objOptionsMenu);
+	
+}
+
+// OBJECT objStartMenu
+
+//CREATE 
+
+menu[0] = "New"
+menu[1] = "Continue"
+menu[2] = "Exit"
+
+menu_x = display_get_gui_width()/2 - 100;
+menu_y = display_get_gui_height()/2 - 59;
+menu_itemheight = font_get_size(font0);
+menu_control = true;
+menu_committed = -1;
+menu_length = array_length_1d(menu);
+menu_cursor = 0;
+
+// STEP
+
+scMenuStep()
+
+if (menu_committed != -1)
+{
+	switch (menu_committed)
+	{
+		case (0): room_goto(rGame); break;
+		case (2): game_end(); break;
+	}
+	menu_committed = -1
+	menu_control = true
+}
+
+
+
+//DRAW GUI
+
+scMenuDraw()
+
+// OBJECT objGameMenu
+
+//CREATE 
+
+menu[0] = "Resume"
+menu[1] = "Load"
+menu[2] = "Save"
+menu[3] = "Options"
+menu[4] = "Main Menu"
+menu[5] = "Exit"
+
+menu_x = display_get_gui_width()/2 - 100;
+menu_y = display_get_gui_height()/2 - 117;
+menu_itemheight = font_get_size(font0);
+menu_control = true;
+menu_committed = -1;
+menu_length = array_length_1d(menu);
+menu_cursor = 0;
+menu_exit = menu_length - 1
+menu_back = menu_length - 2
+
+// STEP
+
+scMenuStep()
+
+if (menu_committed != -1)
+{
+	switch (menu_committed)
+	{
+		case(0): global.active = false; break;
+		case (3): global.optActive = true; break;
+		case (menu_back): room_goto(rStart); break;
+		case (menu_exit): game_end(); break;
+	}
+	menu_committed = -1
+	menu_control = true
+}
+
+//DRAW GUI
+
+scMenuDraw()
+
+
+// OBJECT objOptionsMenu
+
+//CREATE 
+
+res[0] = "1920 x 1080"
+res[1] = "1600 x 900"
+res[2] = "1366 x 768"
+res[3] = "800 x 600"
+
+res_cursor = 0;
+res_control = false;
+res_length = array_length_1d(res);
+
+options[0] = "Back"
+options[1] = "Aspect Ratio:"
+options[2] = "" // changes dynamically
+options[3] = "no"
+options[4] = "maybe"
+options[5] = "so"
+
+menu_x = display_get_gui_width()/2 - 100;
+menu_y = display_get_gui_height()/2 - 117;
+menu_itemheight = font_get_size(font0);
+menu_control = true;
+menu_committed = -1;
+menu_length = array_length_1d(options);
+menu_cursor = 0;
+
+// STEP
+
+scMenuStep()
+
+if (res_control)
+{
+	if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(ord("D")))
+	{
+		res_cursor--;
+		if (res_cursor < 0) res_cursor = res_length - 1;
+	}
+	if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(ord("A")))
+	{
+		res_cursor++;
+		if (res_cursor >= res_length) res_cursor = 0;
+	}
+}
+
+if (menu_committed != -1)
+{
+	switch (menu_committed)
+	{
+		case (0): global.optActive = false; break;
+	}
+	menu_committed = -1
+	menu_control = true
+}
+
+
+//DRAW GUI
+
+draw_set_font(font0)
+draw_set_halign(fa_left)
+draw_set_valign(fa_bottom)
+
+for (var i = 0; i < menu_length; i++)
+{
+	var txt = options[i];
+	var offset = 2;
+	
+	if (menu_cursor == i)
+	{
+		txt = string_insert("> ", txt, 0);
+		var col = c_white;
+	}
+	else 
+	{
+		var col = c_gray;
+	}
+	
+	if (menu_cursor == 2)
+	{
+		res_control = true
+		options[2] = "Resolution:" + " " + res[res_cursor]
+	}
+	else
+	{
+		res_control = false
+		options[2] = "Resolution:" + " " + res[res_cursor]
+	}
+	
+	
+	draw_set_color(col)
+	draw_text(menu_x, menu_y + (menu_itemheight * (i * 1.5)), txt);
+	var xx = menu_x;
+	var yy = menu_y + (menu_itemheight * (i * 1.5));
+	draw_set_color(c_black);
+	draw_text(xx-offset,yy,txt);
+	draw_text(xx+offset,yy,txt);
+	draw_text(xx,yy+offset,txt);
+	draw_text(xx,yy-offset,txt);
+	draw_set_colour(col);
+	draw_text(xx,yy,txt);
+
+}
+
+// SCRIPT scMenuStep
+
+if (keyboard_check_pressed(vk_escape)) menu_cursor = 0;
+
+if (menu_control)
+{
+	if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W")))
+	{
+		menu_cursor--;
+		if (menu_cursor < 0) menu_cursor = menu_length - 1;
+	}
+	if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S")))
+	{
+		menu_cursor++;
+		if (menu_cursor >= menu_length) menu_cursor = 0;
+	}
+	if (keyboard_check_pressed(vk_enter))
+	{
+		menu_committed = menu_cursor;
+		menu_control = false;
+	}
+}
+
+// SCRIPT scMenuDraw
+
+draw_set_font(font0)
+draw_set_halign(fa_left)
+draw_set_valign(fa_bottom)
+
+for (var i = 0; i < menu_length; i++)
+{
+	var txt = menu[i];
+	var offset = 2;
+	
+	if (menu_cursor == i)
+	{
+		txt = string_insert("> ", txt, 0);
+		var col = c_white;
+	}
+	else 
+	{
+		var col = c_gray;
+	}
+	draw_set_color(col)
+	draw_text(menu_x, menu_y + (menu_itemheight * (i * 1.5)), txt);
+	var xx = menu_x;
+	var yy = menu_y + (menu_itemheight * (i * 1.5));
+	draw_set_color(c_black);
+	draw_text(xx-offset,yy,txt);
+	draw_text(xx+offset,yy,txt);
+	draw_text(xx,yy+offset,txt);
+	draw_text(xx,yy-offset,txt);
+	draw_set_colour(col);
+	draw_text(xx,yy,txt);
+
+}
+
+
